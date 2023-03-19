@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 
 const initialState = {
     postList:[],
@@ -6,11 +6,8 @@ const initialState = {
     isLoading:false,
     error:''
 }
-
-//API URL
 const Server_URL = 'https://jsonplaceholder.typicode.com/posts'
-
-//get Posts
+//Get Posts
 export const getPostsFromServer = createAsyncThunk(
     "posts/getPostsFromServer",
     async(_,{rejectWithValue}) =>{
@@ -18,13 +15,12 @@ export const getPostsFromServer = createAsyncThunk(
         if(response.ok){
             const jsonResponse = await response.json()
             return jsonResponse
-        } else{
-            return rejectWithValue({error:'no posts'})
+        } else {
+            return rejectWithValue({error:'No posts'})
         }
     }
 )
-
-//add Post
+//Add Posts
 export const addPosttoServer = createAsyncThunk(
     "posts/addPosttoServer",
     async(post,{rejectWithValue}) =>{
@@ -44,7 +40,6 @@ export const addPosttoServer = createAsyncThunk(
         }
     }
 )
-
 //update Posts
 export const updatePosttoServer = createAsyncThunk(
     "posts/updatePosttoServer",
@@ -65,21 +60,49 @@ export const updatePosttoServer = createAsyncThunk(
         }
     }
 )
+//delete Posts
+export const deletePosttoServer = createAsyncThunk(
+    "posts/deletePosttoServer",
+    async(post,{rejectWithValue}) =>{
+        const options = {
+            method: 'DELETE',
+            body: JSON.stringify(post),
+            headers: {
+                'Content-type': 'application/json; charset=UTF-8',
+              },
+        }
+        const response = await fetch(Server_URL + '/' + post.id, options)
+        if(response.ok){
+            const jsonResponse = await response.json()
+            return jsonResponse
+        } else {
+            return rejectWithValue({error:'No posts'})
+        }
+    }
+)
 
 const postSlice = createSlice({
     name:'postSlice',
     initialState,
     reducers:{
+        addPostToList:(state,action) =>{
+            let post={...action.payload}
+            state.postList.push(post)
+        },
+        removeFromPost:(state,action) =>{
+            state.postList = state.postList.filter((post) => post.id !== action.payload.id )
+        },
         setSelectedPost:(state,action) =>{
             state.selectedPost = action.payload
         }
+    
     },
     extraReducers:(builder) =>{
         builder
             .addCase(getPostsFromServer.pending,(state) =>{
                 state.isLoading = true
             })
-            .addCase(getPostsFromServer.fulfilled,(state,action) =>{
+            .addCase(getPostsFromServer.fulfilled,(state, action) =>{
                 state.isLoading = false
                 state.error = ''
                 state.postList = action.payload
@@ -115,9 +138,22 @@ const postSlice = createSlice({
                 state.isLoading = false
                 state.postList = []
             })
+            .addCase(deletePosttoServer.pending,(state) =>{
+                state.isLoading = true
+            })
+            .addCase(deletePosttoServer.fulfilled,(state, action) =>{
+                state.isLoading = false
+                state.error = ''
+                state.postList = state.postList.filter((post) => post.id !== action.payload.id )
+            })
+            .addCase(deletePosttoServer.rejected,(state, action) =>{
+                state.error = action.payload.error
+                state.isLoading = false
+                state.postList = []
+            })
     }
 })
 
-export const {setSelectedPost} =postSlice.actions
+export const {addPostToList, removeFromPost, updatePostList, setSelectedPost} =postSlice.actions
 
 export default postSlice.reducer

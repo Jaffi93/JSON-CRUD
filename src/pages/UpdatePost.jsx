@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
-import { setSelectedPost } from '../slices/postSlice'
+import { updatePosttoServer } from '../slices/postSlice'
 
 function UpdatePost() {
     const {selectedPost} = useSelector((state) => state.posts)
@@ -11,22 +11,20 @@ function UpdatePost() {
     const [body, setBody] = useState('')
     const[id, setId] = useState(0)
 
+    const updatePost = (e) =>{
+        e.preventDefault()
+        dispatch(updatePosttoServer({id,title,body}))
+        navigate('/')
+    }
+
     useEffect(() =>{
         setTitle(selectedPost.title)
         setBody(selectedPost.body)
         setId(selectedPost.id)
     },[selectedPost])
-
-    const updatePost = (e) =>{
-        e.preventDefault()
-        dispatch(setSelectedPost({id,title,body}))
-        navigate('/')
-    }
-
-   
   return (
     <div>
-        <div className="container mt-3">
+        <div className="container shadow p-3 mt-5">
         <h2>Update Post</h2>
         <form>
             <div className="mb-3 mt-3">
@@ -40,7 +38,6 @@ function UpdatePost() {
             <button type="submit" onClick={updatePost} className="btn btn-primary">Submit</button>
         </form>
         </div>
-
     </div>
   )
 }
