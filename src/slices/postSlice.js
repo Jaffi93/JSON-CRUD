@@ -45,10 +45,35 @@ export const addPosttoServer = createAsyncThunk(
     }
 )
 
+//update Posts
+export const updatePosttoServer = createAsyncThunk(
+    "posts/updatePosttoServer",
+    async(post,{rejectWithValue}) =>{
+        const options = {
+            method: 'PATCH',
+            body: JSON.stringify(post),
+            headers: {
+                'Content-type': 'application/json; charset=UTF-8',
+              },
+        }
+        const response = await fetch(Server_URL + '/' + post.id, options)
+        if(response.ok){
+            const jsonResponse = await response.json()
+            return jsonResponse
+        } else {
+            return rejectWithValue({error:'No posts'})
+        }
+    }
+)
+
 const postSlice = createSlice({
     name:'postSlice',
     initialState,
-    reducers:{},
+    reducers:{
+        setSelectedPost:(state,action) =>{
+            state.selectedPost = action.payload
+        }
+    },
     extraReducers:(builder) =>{
         builder
             .addCase(getPostsFromServer.pending,(state) =>{
@@ -77,7 +102,22 @@ const postSlice = createSlice({
                 state.isLoading = false
                 state.postList = []
             })
+            .addCase(updatePosttoServer.pending,(state) =>{
+                state.isLoading = true
+            })
+            .addCase(updatePosttoServer.fulfilled,(state, action) =>{
+                state.isLoading = false
+                state.error = ''
+                state.postList = state.postList.map((post) => post.id === action.payload.id ? action.payload : post)
+            })
+            .addCase(updatePosttoServer.rejected,(state, action) =>{
+                state.error = action.payload.error
+                state.isLoading = false
+                state.postList = []
+            })
     }
 })
+
+export const {setSelectedPost} =postSlice.actions
 
 export default postSlice.reducer
